@@ -1,7 +1,7 @@
 // sketch.js
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1) GLOBAL CONFIGURATION
+// 1) GLOBAL CONFIGURATION*
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Canvas dimensions: Match the Game Boy Color's native resolution.
