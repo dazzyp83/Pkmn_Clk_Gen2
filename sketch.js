@@ -606,14 +606,16 @@ function startNewBattle() {
       backTransitionStartTime = millis();
       setTimeout(() => {
           // Sprite image file must be 50x50px
+          // FIX: Removed .toUpperCase() to match the casing in pokemonList.json (e.g., .PNG)
           loadImage(`back/${backPokemonData.file}`, img => {
               backSprite = img;
               backTransitionPhase = 'entering';
               backTransitionStartTime = millis();
-          }, () => console.warn(`⚠ back/${backPokemonData.file} failed`));
+          }, () => console.warn(`⚠ Failed to load back sprite: back/${backPokemonData.file}`));
       }, BACK_TRANSITION_DURATION);
   } else {
       // Sprite image file must be 50x50px
+      // FIX: Removed .toUpperCase() to match the casing in pokemonList.json (e.g., .PNG)
       loadImage(`back/${backPokemonData.file}`, img => {
           backSprite = img;
           backTransitionPhase = 'idle';
@@ -626,14 +628,16 @@ function startNewBattle() {
       frontTransitionStartTime = millis();
       setTimeout(() => {
           // Sprite image file must be 40x40px
+          // FIX: Removed .toUpperCase() to match the casing in pokemonList.json (e.g., .PNG)
           loadImage(`front/${frontPokemonData.file}`, img => {
               frontSprite = img;
               frontTransitionPhase = 'entering';
               frontTransitionStartTime = millis();
-          }, () => console.warn(`⚠ front/${pokemonData.file} failed`));
+          }, () => console.warn(`⚠ Failed to load front sprite: front/${frontPokemonData.file}`));
       }, FRONT_TRANSITION_DURATION);
   } else {
       // Sprite image file must be 40x40px
+      // FIX: Removed .toUpperCase() to match the casing in pokemonList.json (e.g., .PNG)
       loadImage(`front/${frontPokemonData.file}`, img => {
           frontSprite = img;
           frontTransitionPhase = 'idle';
