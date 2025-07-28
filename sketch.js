@@ -15,9 +15,6 @@ const CANVAS_HEIGHT = 144;
 // as the hardware drivers will handle the final scaling.
 const DISPLAY_ZOOM_FACTOR = 3;
 
-// Overlay transparency (0-255, where 255 is opaque)
-const OVERLAY_ALPHA = 255; // Example: 50% transparency
-
 // All coordinates and sizes below are now in raw 1x Game Boy logical pixel values.
 
 // Name-box coordinates (1x Game Boy logical space):
@@ -41,7 +38,7 @@ const FRONT_SPRITE_BASE_X = 77;
 const FRONT_SPRITE_BASE_Y = -15;
 
 // HP Bar dimensions and positions (1x Game Boy logical space):
-const HP_LABEL_TEXT_SIZE = 6; 
+const HP_LABEL_TEXT_SIZE = 6;
 
 const FRONT_HP_LABEL_X = 40; // These coordinates are now effectively just for HP bar alignment
 const FRONT_HP_LABEL_Y = 19;
@@ -70,12 +67,6 @@ const WINNER_TEXT_X = 82;
 const WINNER_TEXT_Y = CLOCK_Y_POS - (WINNER_TEXT_SIZE / 2); // Adjusted for two lines
 const WINNER_TEXT_LINE_HEIGHT = WINNER_TEXT_SIZE + 2; // Added a small gap between lines
 
-// Winner text box dimensions (These constants are now only for reference/history, not used for drawing)
-const WINNER_BOX_WIDTH = 100;
-const WINNER_BOX_HEIGHT = 20;
-const WINNER_BOX_X = (CANVAS_WIDTH / 2) - (WINNER_BOX_WIDTH / 2); // Center X
-const WINNER_BOX_Y = WINNER_TEXT_Y - (WINNER_BOX_HEIGHT / 2) + 2; // Center Y around text, adjusted for baseline
-
 // Day Screen Box (1x Game Boy logical space):
 const DAY_BOX_WIDTH = 120;
 const DAY_BOX_HEIGHT = 30;
@@ -84,25 +75,12 @@ const DAY_BOX_Y = ((144 - 30) / 2) - 10; // 57 - 10 = 47
 const DAY_TEXT_SIZE_LABEL = 8;
 const DAY_TEXT_SIZE_DAY = 14;
 
-// Pokedex Screen (1x Game Boy logical space):
-const POKEDEX_TITLE_TEXT_SIZE = 10;
-const POKEDEX_TITLE_X = 80;
-const POKEDEX_TITLE_Y = 20;
-const POKEDEX_LOADING_TEXT_SIZE = 8;
-const POKEDEX_LOADING_TEXT_X = 80;
-const POKEDEX_LOADING_TEXT_Y = 72;
-const POKEDEX_TEXT_SIZE = 8;
-const POKEDEX_TEXT_WIDTH_LIMIT = 140;
-const POKEDEX_TEXT_START_X = 10;
-const POKEDEX_TEXT_START_Y = 40;
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 2) STATE & ASSETS
 // ─────────────────────────────────────────────────────────────────────────────
 
 let bg; // Background image (must be 160x144 pixels)
-let overlay; // Declare a variable for the overlay image
 let pokemonList = [];      // loaded in preload()
 let gameboyFont; // Variable to hold the loaded font
 
@@ -158,12 +136,6 @@ const BACK_SPRITE_OFFSCREEN_LEFT_X = 0 - BACK_SPRITE_W - 10; // Off-screen to th
 // Screen Management
 let currentScreen = 'battle';
 
-// Pokedex Screen Variables
-let pokedexEntryText = "Loading Pokedex Entry...";
-let isLoadingPokedex = false;
-let pokedexEntryLoadedTime = 0;
-const POKEDEX_DISPLAY_DURATION = 5000;
-
 // Flag to control clock visibility
 let showTime = true;
 
@@ -181,13 +153,10 @@ function preload() {
 
   // 3.2) Load the custom Game Boy font
   // Ensure 'pokemon-gsc-font.ttf' is in the same directory as sketch.js
-  gameboyFont = loadFont('pokemon-gsc-font.ttf'); 
+  gameboyFont = loadFont('pokemon-gsc-font.ttf');
 
   // 3.3) synchronous JSON load (blocks until parsed)
   pokemonList = loadJSON('pokemonList.json');
-
-  // 3.4) Load the overlay image
-  overlay = loadImage('overlay.png');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -227,16 +196,7 @@ function draw() {
     case 'day':
       drawDayScreen();
       break;
-    case 'pokedex':
-      drawPokedexScreen();
-      break;
   }
-
-  // Draw the overlay with transparency
-  tint(255, OVERLAY_ALPHA); // Apply transparency
-  image(overlay, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // Draw the overlay
-  noTint(); // Reset tint so it doesn't affect subsequent drawings
-
   pop(); // Restore original transformation state
 }
 
@@ -310,7 +270,7 @@ function drawBattleScreen() {
         let elapsedTime = millis() - backTransitionStartTime;
         if (elapsedTime < BACK_TRANSITION_DURATION) {
             let progress = elapsedTime / BACK_TRANSITION_DURATION;
-            backCurrentX = map(progress, 0, 1, BACK_SPRITE_OFFSCREEN_LEFT_X, BACK_SPRITE_BASE_X);
+            backCurrentX = map(progress, 0, 1, BACK_SPRITE_OFFSCREEN_LEFT_X, BACK_SPRTE_BASE_X);
         } else {
             backCurrentX = BACK_SPRITE_BASE_X;
             backTransitionPhase = 'idle';
@@ -354,7 +314,7 @@ function drawBattleScreen() {
   // UI overlays
   drawNames();
   drawHp();
-  
+
   // Conditionally draw the clock based on showTime flag
   if (showTime) {
     drawClock();
@@ -369,7 +329,7 @@ function drawBattleScreen() {
     if (flashOn) { // Only draw if flash is "on"
       drawWinnerText();
     }
-    
+
     animateWinnerHp();
     showTime = false; // Hide time during winner display
   } else {
@@ -412,54 +372,6 @@ function drawDayScreen() {
       drawClock();
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 5.3) drawPokedexScreen — renders the Pokedex entry UI
-// ─────────────────────────────────────────────────────────────────────────────
-function drawPokedexScreen() {
-    // Background is now part of the 160x144 canvas.
-    image(bg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); // Draw background image (must be 160x144 pixels)
-
-    fill(0);
-    noStroke();
-    textAlign(CENTER, CENTER);
-
-    textSize(POKEDEX_TITLE_TEXT_SIZE);
-    text("POKEDEX ENTRY", POKEDEX_TITLE_X, POKEDEX_TITLE_Y);
-
-    if (isLoadingPokedex) {
-        textSize(POKEDEX_LOADING_TEXT_SIZE);
-        text("LOADING...", POKEDEX_LOADING_TEXT_X, POKEDEX_LOADING_TEXT_Y);
-    } else {
-        textAlign(LEFT, TOP);
-        textSize(POKEDEX_TEXT_SIZE);
-
-        let words = pokedexEntryText.split(' ');
-        let currentLine = '';
-        let y = POKEDEX_TEXT_START_Y;
-
-        for (let i = 0; i < words.length; i++) {
-            let testLine = currentLine + words[i] + ' ';
-            if (textWidth(testLine) < POKEDEX_TEXT_WIDTH_LIMIT) {
-                currentLine = testLine;
-            } else {
-                text(currentLine, POKEDEX_TEXT_START_X, y);
-                currentLine = words[i] + ' ';
-                y += textSize() + 4;
-            }
-        }
-        text(currentLine, POKEDEX_TEXT_START_X, y);
-
-        if (millis() - pokedexEntryLoadedTime > POKEDEX_DISPLAY_DURATION) {
-            currentScreen = 'battle';
-            pokedexEntryText = "Loading Pokedex Entry...";
-        }
-    }
-    if (showTime) { // Conditionally draw clock
-      drawClock();
-    }
-}
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 6) DRAW NAMES — trims & aligns both front/back names
@@ -687,7 +599,7 @@ function takeTurn() {
     battleEndedTimestamp = millis();
 
     // Start winner text flashing
-    isFlashingWinnerText = true; 
+    isFlashingWinnerText = true;
 
     if (hpFront <= 0 && hpBack <= 0) {
       console.log("Both Pokémon fainted! New battle starts.");
@@ -724,11 +636,7 @@ function mouseClicked() {
       lastTurnTime = millis();
     }
   } else if (currentScreen === 'day') {
-    currentScreen = 'pokedex';
-    fetchPokedexEntry(frontPokemonData.name);
-  } else if (currentScreen === 'pokedex') {
     currentScreen = 'battle';
-    pokedexEntryText = "Loading Pokedex Entry...";
   }
 }
 
@@ -766,44 +674,5 @@ function animateWinnerHp() {
         hpFront = fillPercentage;
     } else if (lastWinnerPosition === 'back') {
         hpBack = fillPercentage;
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 14) fetchPokedexEntry — Calls Gemini API for Pokedex entry
-// ─────────────────────────────────────────────────────────────────────────────
-async function fetchPokedexEntry(pokemonName) {
-    isLoadingPokedex = true;
-    pokedexEntryText = "LOADING...";
-
-    const prompt = `Give a very brief, 1-sentence Pokedex entry for ${pokemonName}, similar to what would be found in a Gen 1 Pokémon game. Focus on a key characteristic.`;
-    let chatHistory = [];
-    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-    const payload = { contents: chatHistory };
-    const apiKey = "";
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-    try {
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const result = await response.json();
-
-        if (result.candidates && result.candidates.length > 0 &&
-            result.candidates[0].content && result.candidates[0].content.parts &&
-            result.candidates[0].content.parts.length > 0) {
-            pokedexEntryText = result.candidates[0].content.parts[0].text;
-        } else {
-            pokedexEntryText = "ERROR: Could not fetch entry.";
-            console.error("Gemini API response structure unexpected:", result);
-        }
-    } catch (error) {
-        pokedexEntryText = "ERROR: Network or API issue.";
-        console.error("Error fetching Pokedex entry:", error);
-    } finally {
-        isLoadingPokedex = false;
-        pokedexEntryLoadedTime = millis();
     }
 }
